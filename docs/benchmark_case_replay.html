@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HMS Shadow Benchmark Case Replay</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f8fb;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --line: #d7dee9;
+        --panel: #ffffff;
+        --soft: #f1f5f9;
+        --teal: #0f766e;
+        --blue: #2563eb;
+        --green: #059669;
+        --amber: #d97706;
+        --red: #dc2626;
+        --purple: #7c3aed;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      header {
+        padding: 32px clamp(18px, 5vw, 72px);
+        background: linear-gradient(120deg, #0f766e, #2563eb);
+        color: #fff;
+      }
+
+      h1 {
+        margin: 0 0 10px;
+        font-size: clamp(30px, 5vw, 54px);
+        line-height: 1.04;
+        letter-spacing: 0;
+      }
+
+      header p {
+        max-width: 960px;
+        margin: 0;
+        color: #dbeafe;
+        font-size: 17px;
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 22px clamp(14px, 3vw, 30px) 46px;
+      }
+
+      .question {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 14px;
+        padding: 16px;
+        margin-bottom: 14px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      }
+
+      .question h2 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .question p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .mini-facts {
+        display: grid;
+        gap: 8px;
+      }
+
+      .mini-fact {
+        padding: 9px 11px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        font-size: 14px;
+      }
+
+      .mini-fact strong {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      .controls {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: grid;
+        gap: 10px;
+        margin: 14px 0;
+        padding: 12px;
+        background: rgba(246, 248, 251, 0.95);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        backdrop-filter: blur(8px);
+      }
+
+      .control-top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        border-radius: 8px;
+        padding: 9px 12px;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      button.primary {
+        border-color: var(--teal);
+        background: #ccfbf1;
+        color: #134e4a;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        padding: 0 10px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .status-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(5, 150, 105, 0.14);
+      }
+
+      .progress {
+        height: 10px;
+        min-width: 180px;
+        flex: 1 1 260px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .bar {
+        height: 100%;
+        width: 14.2%;
+        border-radius: inherit;
+        background: var(--teal);
+        transition: width 260ms ease;
+      }
+
+      .step-strip {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .step-pill {
+        min-height: 52px;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.25;
+        text-align: left;
+      }
+
+      .step-pill.active {
+        border-color: var(--teal);
+        background: #ccfbf1;
+        color: #134e4a;
+      }
+
+      .current-step {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 10px;
+        padding: 13px 14px;
+        border: 1px solid #99f6e4;
+        border-radius: 10px;
+        background: #f0fdfa;
+      }
+
+      .current-step strong {
+        font-size: 15px;
+      }
+
+      .current-step span {
+        color: #115e59;
+        line-height: 1.45;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: 1.05fr 1.2fr 1.05fr;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .column {
+        min-width: 0;
+        overflow: hidden;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+      }
+
+      .column h3 {
+        margin: 0;
+        padding: 15px 16px;
+        border-bottom: 1px solid var(--line);
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .column-body {
+        padding: 14px;
+      }
+
+      .node {
+        position: relative;
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--blue);
+        border-radius: 8px;
+        background: #fff;
+        opacity: 0.22;
+        transform: translateY(7px) scale(0.994);
+        transition:
+          opacity 260ms ease,
+          transform 260ms ease,
+          background 260ms ease,
+          border-color 260ms ease,
+          box-shadow 260ms ease;
+      }
+
+      .node.visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .node.active {
+        border-color: var(--teal);
+        background: #f0fdfa;
+        box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.13);
+      }
+
+      .node.amber {
+        border-left-color: var(--amber);
+      }
+
+      .node.blue {
+        border-left-color: var(--blue);
+      }
+
+      .node.green {
+        border-left-color: var(--green);
+      }
+
+      .node.red {
+        border-left-color: var(--red);
+      }
+
+      .node.purple {
+        border-left-color: var(--purple);
+      }
+
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .tag {
+        display: inline-block;
+        margin-bottom: 8px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #075985;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .node p {
+        margin: 0;
+        line-height: 1.48;
+      }
+
+      .quote {
+        margin-top: 7px;
+        color: #334155;
+        font-size: 13px;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        padding: 9px 8px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--soft);
+        color: #334155;
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      tr {
+        opacity: 0.22;
+        transition:
+          opacity 240ms ease,
+          background 240ms ease;
+      }
+
+      tr.visible {
+        opacity: 1;
+      }
+
+      tr.active {
+        background: #f0fdfa;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        color: #1e293b;
+        font:
+          12px/1.48 "SFMono-Regular", Consolas, "Liberation Mono", Menlo,
+          monospace;
+      }
+
+      .answer {
+        background: #ecfdf5;
+        border-color: #86efac;
+      }
+
+      .answer strong {
+        color: #065f46;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 7px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+      }
+
+      .swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+
+      @media (max-width: 1100px) {
+        .board,
+        .question,
+        .current-step {
+          grid-template-columns: 1fr;
+        }
+
+        .step-strip {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Benchmark case replay</h1>
+      <p>
+        This page auto-plays a single benchmark-style case. It shows what the
+        original sessions look like, what the evidence layer extracts, and what
+        the answer model receives after organization.
+      </p>
+    </header>
+
+    <main>
+      <section class="question">
+        <div>
+          <h2>Question: How many clothing items require pickup or return?</h2>
+          <p>
+            The answer is spread across several sessions. The hard part is not
+            just retrieval; the system must identify actionable store tasks,
+            filter clothing distractors, and avoid double-counting repeated Zara
+            mentions.
+          </p>
+        </div>
+        <div class="mini-facts">
+          <div class="mini-fact"><strong>Case type</strong>multi-session count</div>
+          <div class="mini-fact"><strong>Evidence unit</strong>retrieved session snippets</div>
+          <div class="mini-fact"><strong>Target behavior</strong>unique action counting</div>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Replay controls">
+        <div class="control-top">
+          <button class="primary" type="button" id="play">Pause auto-play</button>
+          <button type="button" id="prev">Prev</button>
+          <button type="button" id="next">Next</button>
+          <div class="progress" aria-hidden="true"><div class="bar"></div></div>
+          <span class="status" id="status"><span class="status-dot"></span>Auto-playing</span>
+        </div>
+        <div class="step-strip" id="stepStrip"></div>
+        <div class="current-step">
+          <strong id="stepTitle">1. Read the question</strong>
+          <span id="stepText">Classify the query as a multi-session counting problem over pending pickup or return actions.</span>
+        </div>
+      </section>
+
+      <section class="board" aria-label="Pipeline board">
+        <article class="column">
+          <h3>1. Original Sessions</h3>
+          <div class="column-body">
+            <div class="node amber visible active" data-show="0" data-active="0">
+              <span class="tag">query signal</span>
+              <p><strong>Count target:</strong> "How many items"</p>
+              <p><strong>Scope:</strong> clothing + pickup/return + store</p>
+            </div>
+
+            <div class="node amber" data-show="1" data-active="1">
+              <div class="meta"><span>Session A</span><span>06:30</span></div>
+              <p><strong>Closet organization + dry cleaning</strong></p>
+              <p class="quote">"I still need to pick up my dry cleaning for the navy blue blazer..."</p>
+            </div>
+
+            <div class="node blue" data-show="1" data-active="1">
+              <div class="meta"><span>Session B</span><span>11:13</span></div>
+              <p><strong>Outdoor concert outfit + Zara boots</strong></p>
+              <p class="quote">"I need to return some boots to Zara ... exchanged them for a larger size ... haven't picked them up yet."</p>
+            </div>
+
+            <div class="node green" data-show="1" data-active="1">
+              <div class="meta"><span>Session C</span><span>16:19</span></div>
+              <p><strong>Tracking pickups and returns</strong></p>
+              <p class="quote">"I just exchanged a pair of boots ... and I still need to pick up the new pair."</p>
+            </div>
+
+            <div class="node red" data-show="1" data-active="1">
+              <div class="meta"><span>Distractors</span><span>same day</span></div>
+              <p>
+                Yellow sundress, green sweater, yoga pants, scarf, gloves, jeans,
+                and laundry tips mention clothing but do not create store
+                pickup/return tasks.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="column">
+          <h3>2. Evidence Layer</h3>
+          <div class="column-body">
+            <div class="node blue" data-show="2" data-active="2">
+              <span class="tag">candidate extraction</span>
+              <p><strong>C1:</strong> pickup action · navy blue blazer · dry cleaning</p>
+              <p class="muted">Reason: explicit "need to pick up".</p>
+            </div>
+
+            <div class="node blue" data-show="2" data-active="2">
+              <span class="tag">candidate extraction</span>
+              <p><strong>C2:</strong> pickup action · larger replacement boots · Zara</p>
+              <p class="muted">Reason: explicit "haven't picked them up yet".</p>
+            </div>
+
+            <div class="node blue" data-show="2" data-active="2">
+              <span class="tag">candidate extraction</span>
+              <p><strong>C3:</strong> return action · too-small boots · Zara</p>
+              <p class="muted">Reason: explicit "need to return".</p>
+            </div>
+
+            <div class="node red" data-show="2" data-active="2">
+              <span class="tag">filtered evidence</span>
+              <p>
+                Clothing mentions with no pending store action are excluded from
+                the count.
+              </p>
+            </div>
+
+            <div class="node purple" data-show="3" data-active="3">
+              <span class="tag">structured ledger</span>
+              <table aria-label="Evidence ledger">
+                <thead>
+                  <tr>
+                    <th>row</th>
+                    <th>action</th>
+                    <th>item</th>
+                    <th>source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-row="3">
+                    <td>E1</td>
+                    <td>pick up</td>
+                    <td>navy blazer</td>
+                    <td>06:30</td>
+                  </tr>
+                  <tr data-row="3">
+                    <td>E2</td>
+                    <td>pick up</td>
+                    <td>larger boots</td>
+                    <td>11:13 / 16:19</td>
+                  </tr>
+                  <tr data-row="3">
+                    <td>E3</td>
+                    <td>return</td>
+                    <td>small boots</td>
+                    <td>11:13</td>
+                  </tr>
+                  <tr data-row="3">
+                    <td>D1</td>
+                    <td>ignore</td>
+                    <td>other clothing</td>
+                    <td>several</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="node purple" data-show="4" data-active="4">
+              <span class="tag">count control</span>
+              <p>
+                Count unique required store actions. Do not count repeated Zara
+                pickup mentions twice.
+              </p>
+            </div>
+
+            <div class="node purple" data-show="4" data-active="4">
+              <span class="tag">action separation</span>
+              <p>
+                The Zara exchange creates two actions: return the too-small pair
+                and pick up the replacement pair.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="column">
+          <h3>3. Model Input After Organization</h3>
+          <div class="column-body">
+            <div class="node green" data-show="5" data-active="5">
+              <span class="tag">answer packet</span>
+              <pre>Question:
+How many clothing items require pickup or return?
+
+Ledger:
+1. pickup · navy blazer · dry cleaner
+2. pickup · larger boots · Zara
+3. return · small boots · Zara
+
+Rules:
+- count unique pending actions
+- deduplicate repeated mentions
+- exclude non-action clothing mentions</pre>
+            </div>
+
+            <div class="node answer" data-show="6" data-active="6">
+              <span class="tag">grounded answer</span>
+              <p>
+                <strong>3.</strong> The required actions are: pick up the navy
+                blue blazer from dry cleaning, pick up the larger replacement
+                boots from Zara, and return the too-small boots to Zara.
+              </p>
+            </div>
+
+            <div class="node green" data-show="6" data-active="6">
+              <span class="tag">why this is clearer</span>
+              <p>
+                The answer is produced from explicit evidence rows, not from a
+                long unordered context. The model sees exactly which rows count
+                and which mentions are distractors.
+              </p>
+            </div>
+
+            <div class="legend" aria-label="Color legend">
+              <span><i class="swatch" style="background: var(--amber)"></i>query/session</span>
+              <span><i class="swatch" style="background: var(--blue)"></i>candidate</span>
+              <span><i class="swatch" style="background: var(--purple)"></i>ledger/control</span>
+              <span><i class="swatch" style="background: var(--green)"></i>answer</span>
+              <span><i class="swatch" style="background: var(--red)"></i>filtered</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const steps = [
+        {
+          title: "1. Read the question",
+          text: "Classify the query as a multi-session counting problem over pending pickup or return actions.",
+        },
+        {
+          title: "2. Surface relevant sessions",
+          text: "Show the raw snippets that mention clothing, stores, pickup, return, and distractor clothing items.",
+        },
+        {
+          title: "3. Extract recall candidates",
+          text: "Keep only snippets with actionable pickup or return signals; filter clothing mentions that are not store tasks.",
+        },
+        {
+          title: "4. Build the evidence ledger",
+          text: "Convert candidate snippets into rows with action, item, source, and whether the row should count.",
+        },
+        {
+          title: "5. Apply counting controls",
+          text: "Deduplicate repeated mentions and separate pickup actions from return actions.",
+        },
+        {
+          title: "6. Assemble the answer packet",
+          text: "Give the answer model a compact packet containing the ledger and explicit counting rules.",
+        },
+        {
+          title: "7. Generate the grounded answer",
+          text: "Answer from the evidence rows: one blazer pickup, one boots pickup, and one boots return.",
+        },
+      ];
+
+      const totalSteps = steps.length;
+      const strip = document.querySelector("#stepStrip");
+      const play = document.querySelector("#play");
+      const prev = document.querySelector("#prev");
+      const next = document.querySelector("#next");
+      const bar = document.querySelector(".bar");
+      const status = document.querySelector("#status");
+      const stepTitle = document.querySelector("#stepTitle");
+      const stepText = document.querySelector("#stepText");
+      const nodes = [...document.querySelectorAll("[data-show]")];
+      const rows = [...document.querySelectorAll("[data-row]")];
+
+      let step = 0;
+      let timer = null;
+      let autoplay = true;
+
+      steps.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "step-pill";
+        button.dataset.step = String(index);
+        button.textContent = item.title;
+        button.addEventListener("click", () => {
+          stop("Manual step selected");
+          render(index);
+        });
+        strip.appendChild(button);
+      });
+
+      const stepButtons = [...document.querySelectorAll(".step-pill")];
+
+      function setStatus(text, active) {
+        status.innerHTML = `<span class="status-dot"></span>${text}`;
+        status.querySelector(".status-dot").style.background = active ? "var(--green)" : "var(--amber)";
+      }
+
+      function stop(label = "Paused") {
+        clearInterval(timer);
+        timer = null;
+        autoplay = false;
+        play.textContent = "Resume auto-play";
+        setStatus(label, false);
+      }
+
+      function start() {
+        clearInterval(timer);
+        autoplay = true;
+        play.textContent = "Pause auto-play";
+        setStatus("Auto-playing", true);
+        timer = setInterval(() => {
+          render(step >= totalSteps - 1 ? 0 : step + 1);
+        }, 2200);
+      }
+
+      function render(nextStep) {
+        step = Math.max(0, Math.min(totalSteps - 1, nextStep));
+        stepButtons.forEach((button) => {
+          button.classList.toggle("active", Number(button.dataset.step) === step);
+        });
+        stepTitle.textContent = steps[step].title;
+        stepText.textContent = steps[step].text;
+        bar.style.width = `${((step + 1) / totalSteps) * 100}%`;
+        nodes.forEach((node) => {
+          const show = Number(node.dataset.show);
+          const active = Number(node.dataset.active);
+          node.classList.toggle("visible", show <= step);
+          node.classList.toggle("active", active === step);
+        });
+        rows.forEach((row) => {
+          const rowStep = Number(row.dataset.row);
+          row.classList.toggle("visible", rowStep <= step);
+          row.classList.toggle("active", rowStep === step);
+        });
+      }
+
+      prev.addEventListener("click", () => {
+        stop("Manual step selected");
+        render(step - 1);
+      });
+
+      next.addEventListener("click", () => {
+        stop("Manual step selected");
+        render(step + 1);
+      });
+
+      play.addEventListener("click", () => {
+        if (autoplay) {
+          stop();
+          return;
+        }
+        start();
+      });
+
+      render(0);
+      start();
+    </script>
+  </body>
+</html>

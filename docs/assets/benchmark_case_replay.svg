@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+  <title id="title">Benchmark case replay</title>
+  <desc id="desc">Animated replay of one multi-session benchmark case: raw sessions are retrieved, converted into evidence rows, deduplicated, and answered.</desc>
+  <style>
+    .label { font: 700 18px Inter, Arial, sans-serif; fill: #0f172a; }
+    .small { font: 500 13px Inter, Arial, sans-serif; fill: #64748b; }
+    .body { font: 500 15px Inter, Arial, sans-serif; fill: #334155; }
+    .mono { font: 700 13px Inter, Arial, sans-serif; fill: #0f172a; }
+    .panel { fill: #fff; stroke: #d7dee9; stroke-width: 1; filter: url(#shadow); }
+    .chip { fill: #e0f2fe; stroke: #7dd3fc; }
+    .step { opacity: 0.22; }
+    .step1 { animation: reveal 12s infinite; animation-delay: 0s; }
+    .step2 { animation: reveal 12s infinite; animation-delay: 2.2s; }
+    .step3 { animation: reveal 12s infinite; animation-delay: 4.4s; }
+    .step4 { animation: reveal 12s infinite; animation-delay: 6.6s; }
+    .step5 { animation: reveal 12s infinite; animation-delay: 8.8s; }
+    .pulse { animation: pulse 12s infinite; }
+    @keyframes reveal {
+      0%, 12% { opacity: 1; }
+      22%, 100% { opacity: 0.22; }
+    }
+    @keyframes pulse {
+      0%, 18% { transform: translateX(0); }
+      20%, 38% { transform: translateX(214px); }
+      40%, 58% { transform: translateX(428px); }
+      60%, 78% { transform: translateX(642px); }
+      80%, 98% { transform: translateX(856px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#14213d" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="760" fill="#f8fafc"/>
+  <rect x="44" y="34" width="1192" height="82" rx="12" fill="#0f766e"/>
+  <text x="76" y="72" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800" fill="#fff">Dynamic benchmark case replay</text>
+  <text x="76" y="99" font-family="Inter, Arial, sans-serif" font-size="15" fill="#ccfbf1">One multi-session case: clothing pickup/return count. The animation shows the processing flow.</text>
+
+  <rect x="76" y="142" width="1128" height="72" rx="10" fill="#fff" stroke="#d7dee9"/>
+  <text x="104" y="173" class="label">Question</text>
+  <text x="104" y="198" class="body">How many items of clothing do I need to pick up or return from a store?</text>
+  <rect x="928" y="160" width="236" height="34" rx="17" class="chip"/>
+  <text x="1046" y="182" text-anchor="middle" class="mono">benchmark type: multi-session</text>
+
+  <g transform="translate(86 246)">
+    <rect x="0" y="0" width="1020" height="12" rx="6" fill="#e2e8f0"/>
+    <rect class="pulse" x="0" y="-3" width="164" height="18" rx="9" fill="#0f766e"/>
+    <text x="0" y="44" class="small">1. Raw sessions</text>
+    <text x="214" y="44" class="small">2. Recall candidates</text>
+    <text x="428" y="44" class="small">3. Evidence ledger</text>
+    <text x="642" y="44" class="small">4. Deduplicate actions</text>
+    <text x="856" y="44" class="small">5. Grounded answer</text>
+  </g>
+
+  <g class="step step1">
+    <rect class="panel" x="76" y="336" width="330" height="316" rx="12"/>
+    <text x="104" y="374" class="label">Raw retrieved sessions</text>
+    <text x="104" y="401" class="small">Relevant facts are scattered across the day.</text>
+
+    <rect x="104" y="430" width="274" height="58" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="122" y="454" class="mono">06:30 · dry cleaner</text>
+    <text x="122" y="476" class="small">pick up navy blue blazer</text>
+
+    <rect x="104" y="506" width="274" height="58" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="122" y="530" class="mono">11:13 · Zara</text>
+    <text x="122" y="552" class="small">return small boots / pick up larger pair</text>
+
+    <rect x="104" y="582" width="274" height="42" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+    <text x="122" y="608" class="small">Many distractor sessions are ignored.</text>
+  </g>
+
+  <line x1="424" y1="496" x2="486" y2="496" stroke="#475569" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <g class="step step2">
+    <rect class="panel" x="500" y="336" width="300" height="316" rx="12"/>
+    <text x="528" y="374" class="label">Recall candidates</text>
+    <text x="528" y="401" class="small">The system keeps source and time metadata.</text>
+
+    <rect x="528" y="430" width="244" height="54" rx="8" fill="#fff"/>
+    <text x="546" y="454" class="mono">candidate A</text>
+    <text x="546" y="475" class="small">store action · pick up · blazer</text>
+
+    <rect x="528" y="500" width="244" height="54" rx="8" fill="#fff"/>
+    <text x="546" y="524" class="mono">candidate B</text>
+    <text x="546" y="545" class="small">store action · pick up · boots</text>
+
+    <rect x="528" y="570" width="244" height="54" rx="8" fill="#fff"/>
+    <text x="546" y="594" class="mono">candidate C</text>
+    <text x="546" y="615" class="small">store action · return · boots</text>
+  </g>
+
+  <line x1="818" y1="496" x2="878" y2="496" stroke="#475569" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <g class="step step3">
+    <rect class="panel" x="892" y="336" width="312" height="316" rx="12"/>
+    <text x="920" y="374" class="label">Evidence ledger</text>
+    <text x="920" y="401" class="small">Each row carries action, item, source, support.</text>
+
+    <rect x="920" y="430" width="256" height="48" rx="8" fill="#ecfdf5" stroke="#bbf7d0"/>
+    <text x="938" y="459" class="small">pick up · blazer · dry cleaner · 06:30</text>
+
+    <rect x="920" y="496" width="256" height="48" rx="8" fill="#ecfdf5" stroke="#bbf7d0"/>
+    <text x="938" y="525" class="small">pick up · larger boots · Zara · 11:13</text>
+
+    <rect x="920" y="562" width="256" height="48" rx="8" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="938" y="591" class="small">return · small boots · Zara · 11:13</text>
+  </g>
+
+  <g class="step step4">
+    <rect x="76" y="682" width="512" height="46" rx="10" fill="#fff" stroke="#d7dee9"/>
+    <text x="104" y="711" class="body">Deduplication: count unique required store actions, not repeated mentions.</text>
+  </g>
+
+  <g class="step step5">
+    <rect x="616" y="682" width="588" height="46" rx="10" fill="#ecfdf5" stroke="#bbf7d0"/>
+    <text x="644" y="711" class="body">Answer: 3 items/actions to handle: blazer pickup, boots pickup, boots return.</text>
+  </g>
+</svg>
