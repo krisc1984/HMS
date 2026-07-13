@@ -1,16 +1,27 @@
-<div align="center">
+<table>
+  <tr>
+    <td width="36%" align="center" valign="middle">
+      <img src="docs/assets/branding/shadowweave_v6.png" alt="ShadowWeave" width="330">
+    </td>
+    <td width="64%" valign="middle">
+      <h1>Holographic<br>Memory System</h1>
+      <p><strong>HMS</strong> · Structured Memory Intelligence</p>
+      <p><em>Evidence-grounded memory for reliable long-horizon reasoning</em></p>
+      <p><strong>ShadowWeave Team</strong></p>
+      <p>
+        <a href="https://arxiv.org/">
+          <img src="https://img.shields.io/badge/arXiv-coming_soon-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv: coming soon">
+        </a>
+        <img src="https://img.shields.io/badge/status-active-145DA0?style=flat-square" alt="Project status: active">
+      </p>
+      <p><a href="README.md">English</a> · <a href="README.zh-CN.md">中文</a></p>
+    </td>
+  </tr>
+</table>
 
-# Holographic Memory System
-
-**ShadowWeave Team**
-
-*A structured memory architecture for evidence-grounded, long-horizon reasoning*
-
-<img src="docs/assets/branding/hms-banner.png" alt="Holographic Memory System" width="100%">
-
-[English](README.md) · [中文](README.zh-CN.md)
-
-</div>
+<p align="center">
+  <img src="docs/assets/branding/hms-banner.png" alt="Holographic Memory System architecture banner" width="100%">
+</p>
 
 ---
 
@@ -133,7 +144,8 @@ improve or change memory reasoning behavior after retrieval.
 ├── docs/
 │   ├── assets/
 │   │   ├── branding/
-│   │   │   └── hms-banner.png
+│   │   │   ├── hms-banner.png
+│   │   │   └── shadowweave_v6.png
 │   │   ├── benchmark_case_replay.svg
 │   │   └── memory_pipeline_demo.svg
 │   ├── benchmark_case_replay.html
@@ -156,6 +168,7 @@ Important files:
 
 - `.aaaSCRIPT/run_benchmark.sh`: unified experiment script
 - `docs/assets/branding/hms-banner.png`: project identity banner
+- `docs/assets/branding/shadowweave_v6.png`: ShadowWeave team identity artwork
 - `docs/benchmark_case_replay.html`: auto-playing single-case process replay
 - `docs/assets/benchmark_case_replay.svg`: README-embedded animated case replay
 - `docs/memory_pipeline_demo.html`: static before/after visualization
