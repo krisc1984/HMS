@@ -11,14 +11,15 @@ session、多个时间点、抽取后的 memory facts，以及原始 source snip
 
 ## 实验设计
 
-整个实验被拆成四个阶段：
+完整复现实验按照以下链路执行：
 
 ```text
-Question
-  -> retrieve existing memories
-  -> organize retrieved evidence
-  -> generate a grounded answer
-  -> evaluate the answer
+Dataset conversations
+  -> Retain：抽取并存储结构化记忆
+  -> Recall：针对问题检索证据
+  -> Organize：组织 answer-time evidence
+  -> Answer：生成 grounded response
+  -> Judge：与 gold answer 比较并评分
 ```
 
 核心思想是：不要直接把松散的 retrieved facts 交给回答模型，而是在生成前
@@ -149,36 +150,75 @@ answer-time controller。controller 来自错误模式诊断，主要覆盖：
 cp .env.example .env
 ```
 
-然后填入自己的数据库和模型服务配置。
+打开 `.env`，替换所有 `*_change_me`。主要模型配置位置如下：
 
-框架会从 `.env` 加载配置。不要把凭证硬编码到源码里。
+| 流程角色 | Base URL | API Key | Model |
+| --- | --- | --- | --- |
+| HMS 核心 / Recall 组织 | `HMS_API_LLM_BASE_URL` | `HMS_API_LLM_API_KEY` | `HMS_API_LLM_MODEL` |
+| Retain / 事实抽取 | `HMS_API_RETAIN_LLM_BASE_URL` | `HMS_API_RETAIN_LLM_API_KEY` | `HMS_API_RETAIN_LLM_MODEL` |
+| Answer 生成 | `HMS_API_ANSWER_LLM_BASE_URL` | `HMS_API_ANSWER_LLM_API_KEY` | `HMS_API_ANSWER_LLM_MODEL` |
+| LLM Judge | `HMS_API_JUDGE_LLM_BASE_URL` | `HMS_API_JUDGE_LLM_API_KEY` | `HMS_API_JUDGE_LLM_MODEL` |
+| Embedding | `HMS_API_EMBEDDINGS_OPENAI_BASE_URL` | `HMS_API_EMBEDDINGS_OPENAI_API_KEY` | `HMS_API_EMBEDDINGS_OPENAI_MODEL` |
+
+这些角色可以共用同一个 OpenAI-compatible 服务，此时在各配置段填写相同的
+Base URL 和 API Key 即可。还需要配置：
+
+- `HMS_API_DATABASE_URL`：可访问且启用 `pgvector` 的 PostgreSQL
+- `HMS_DATASET_PATH`：本地 LongMemEval 数据集 JSON 路径
+- `HMS_PIPELINE`：`ledger` 或 `self_evolution`
+
+框架会从 `.env` 加载配置。不要把凭证硬编码到源码里，也不要提交填写后的 `.env`。
 
 ## 复现逻辑
 
-benchmark 脚本默认使用 retrieval-only 模式：
+benchmark 脚本默认执行完整复现链路：
 
 ```text
-HMS_RETRIEVAL_ONLY=1
+Retain -> Recall -> Answer -> Judge
 ```
 
-在这个模式下，memory extraction 和 ingestion 会被跳过。实验直接使用配置
-数据库中已经存在的 memory units。这样可以保证 retrieval 和 answer-time
-evidence organization 的实验更一致，也更快。
+每个 benchmark item 会先执行 Retain，将 conversation sessions 写入记忆库；
+随后针对问题执行 Recall、组织证据并生成 Answer；最后由配置的 Judge 模型将
+生成答案与 gold answer 进行比较和评分。
 
 推荐复现流程：
 
 ```text
-1. 在 .env 中准备数据库和模型配置
-2. 确认 memory database 中已经有需要的 memory units
-3. 选择 pipeline mode
-4. 运行 LongMemEval 脚本
-5. 查看 ignored runtime directories 下生成的本地运行产物
+1. 将 .env.example 复制为 .env
+2. 填写数据库、Base URL、API Key、模型和数据集路径
+3. 先运行 1 到 2 个 benchmark instances
+4. 确认 Retain、Recall、Answer、Judge 均成功完成
+5. 再提高并发和 benchmark 数量
+6. 在 .aaaRESULT/ 查看结果，在 .aaaLOG/ 查看日志
 ```
+
+只有当数据库中已经存在同一批 retained memories，并且明确只想重跑
+Recall → Answer → Judge 时，才设置 `HMS_RETRIEVAL_ONLY=1`。
+
+## 最小端到端运行
+
+```bash
+cp .env.example .env
+# 继续之前先编辑 .env。
+
+export HMS_BENCHMARK=longmemeval
+export HMS_PIPELINE=ledger
+export HMS_RETRIEVAL_ONLY=0
+export HMS_MAX_INSTANCES=2
+
+bash .aaaSCRIPT/run_benchmark.sh \
+  --parallel 1 \
+  --max-concurrent-questions 1 \
+  --eval-semaphore-size 1
+```
+
+干净复现时，脚本启动后应打印：
+`HMS reproduction mode: Retain -> Recall -> Judge`。
 
 ## 运行 Ledger Pipeline
 
 ```bash
-export HMS_RETRIEVAL_ONLY=1
+export HMS_RETRIEVAL_ONLY=0
 export HMS_PIPELINE=ledger
 export HMS_MAX_INSTANCES=500
 export HMS_SESSION_EXPANSION_WEIGHT=0.5
@@ -193,7 +233,7 @@ bash .aaaSCRIPT/run_benchmark.sh \
 ## 运行 Self-Evolution Pipeline
 
 ```bash
-export HMS_RETRIEVAL_ONLY=1
+export HMS_RETRIEVAL_ONLY=0
 export HMS_PIPELINE=self_evolution
 export HMS_MAX_INSTANCES=500
 export HMS_SESSION_EXPANSION_WEIGHT=0.5
@@ -210,7 +250,7 @@ bash .aaaSCRIPT/run_benchmark.sh \
 常用环境变量：
 
 - `HMS_PIPELINE`：`ledger` 或 `self_evolution`
-- `HMS_RETRIEVAL_ONLY`：设为 `1` 时跳过 ingestion，复用已有 memories
+- `HMS_RETRIEVAL_ONLY`：默认是 `0`；仅在复用已 retained memories 时设为 `1`
 - `HMS_MAX_INSTANCES`：限制评测问题数量
 - `HMS_MAX_QUESTIONS`：在筛选后继续限制问题数量
 - `HMS_DATASET_PATH`：指定本地 LongMemEval 数据集路径

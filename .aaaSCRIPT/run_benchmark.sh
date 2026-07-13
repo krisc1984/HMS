@@ -31,11 +31,18 @@ if [ -n "$PYTHON_BIN" ]; then
   export PYTHONPATH="$ROOT_DIR/core/dataplane:$ROOT_DIR/lab/evaluation${PYTHONPATH:+:$PYTHONPATH}"
 fi
 
-# Retrieval-only is the default development mode. It avoids re-running retain
-# extraction and reuses memories already stored in the configured database.
-if [ "${HMS_RETRIEVAL_ONLY:-1}" = "1" ]; then
+# A clean reproduction runs the complete Retain -> Recall -> Judge pipeline.
+# Set HMS_RETRIEVAL_ONLY=1 only when intentionally reusing an already-ingested
+# memory bank for faster recall/judge iteration.
+if [ "${HMS_RETRIEVAL_ONLY:-0}" = "1" ]; then
   COMMON_ARGS+=(--skip-ingestion)
+  echo "HMS reproduction mode: Recall -> Judge (Retain skipped; existing memories required)"
+else
+  echo "HMS reproduction mode: Retain -> Recall -> Judge"
 fi
+
+echo "Configuration source: $ROOT_DIR/.env"
+echo "Benchmark: $BENCHMARK"
 
 cd "$ROOT_DIR"
 

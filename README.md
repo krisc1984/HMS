@@ -34,14 +34,15 @@ source snippets.
 
 ## Experiment Design
 
-The experiment separates memory QA into four stages:
+The reproducible evaluation follows one complete pipeline:
 
 ```text
-Question
-  -> retrieve existing memories
-  -> organize retrieved evidence
-  -> generate a grounded answer
-  -> evaluate the answer
+Dataset conversations
+  -> Retain: extract and store structured memories
+  -> Recall: retrieve evidence for each question
+  -> Organize: build an answer-time evidence structure
+  -> Answer: generate a grounded response
+  -> Judge: compare the response with the gold answer
 ```
 
 The core idea is to avoid giving the answer model a loose list of retrieved
@@ -186,37 +187,78 @@ Create a local environment file:
 cp .env.example .env
 ```
 
-Then fill in your own database and model-provider settings.
+Open `.env` and replace the `*_change_me` values. The main model settings are:
+
+| Pipeline role | Base URL | API key | Model |
+| --- | --- | --- | --- |
+| Core HMS / recall organization | `HMS_API_LLM_BASE_URL` | `HMS_API_LLM_API_KEY` | `HMS_API_LLM_MODEL` |
+| Retain / fact extraction | `HMS_API_RETAIN_LLM_BASE_URL` | `HMS_API_RETAIN_LLM_API_KEY` | `HMS_API_RETAIN_LLM_MODEL` |
+| Answer generation | `HMS_API_ANSWER_LLM_BASE_URL` | `HMS_API_ANSWER_LLM_API_KEY` | `HMS_API_ANSWER_LLM_MODEL` |
+| LLM judge | `HMS_API_JUDGE_LLM_BASE_URL` | `HMS_API_JUDGE_LLM_API_KEY` | `HMS_API_JUDGE_LLM_MODEL` |
+| Embeddings | `HMS_API_EMBEDDINGS_OPENAI_BASE_URL` | `HMS_API_EMBEDDINGS_OPENAI_API_KEY` | `HMS_API_EMBEDDINGS_OPENAI_MODEL` |
+
+All roles may point to the same OpenAI-compatible service. In that case, use
+the same Base URL and API key in each section while choosing models appropriate
+for each role. Also configure:
+
+- `HMS_API_DATABASE_URL`: a reachable PostgreSQL database with `pgvector`
+- `HMS_DATASET_PATH`: the local LongMemEval dataset JSON path
+- `HMS_PIPELINE`: `ledger` or `self_evolution`
 
 The framework loads configuration from `.env`. Do not hard-code credentials in
-the source code.
+the source code, and never commit the populated `.env` file.
 
 ## Reproduction Logic
 
-The benchmark script defaults to retrieval-only mode:
+The benchmark script now defaults to the full clean reproduction path:
 
 ```text
-HMS_RETRIEVAL_ONLY=1
+Retain -> Recall -> Answer -> Judge
 ```
 
-In this mode, memory extraction and ingestion are skipped. The experiment uses
-memory units already stored in the configured database. This keeps retrieval
-and answer-time evidence organization experiments consistent and fast.
+For every benchmark item, HMS first retains the conversation sessions, recalls
+relevant memories for each question, generates a grounded answer, and finally
+uses the configured judge model to score that answer against the gold answer.
 
-The expected reproduction flow is:
+Recommended first run:
 
 ```text
-1. Prepare database and model configuration in .env
-2. Ensure the memory database already contains the required memory units
-3. Select a pipeline mode
-4. Run the LongMemEval script
-5. Inspect generated local artifacts under ignored runtime directories
+1. Copy .env.example to .env
+2. Fill database, Base URL, API key, model, and dataset settings
+3. Start with one or two benchmark instances
+4. Verify Retain, Recall, Answer, and Judge all complete
+5. Increase concurrency and benchmark size
+6. Inspect results under .aaaRESULT/ and logs under .aaaLOG/
 ```
+
+Use `HMS_RETRIEVAL_ONLY=1` only for a later iteration when the same memories are
+already present in the database and you intentionally want to rerun only
+Recall → Answer → Judge.
+
+## Minimal End-to-End Run
+
+```bash
+cp .env.example .env
+# Edit .env before continuing.
+
+export HMS_BENCHMARK=longmemeval
+export HMS_PIPELINE=ledger
+export HMS_RETRIEVAL_ONLY=0
+export HMS_MAX_INSTANCES=2
+
+bash .aaaSCRIPT/run_benchmark.sh \
+  --parallel 1 \
+  --max-concurrent-questions 1 \
+  --eval-semaphore-size 1
+```
+
+The script prints the active mode at startup. For a clean reproduction it must
+print `HMS reproduction mode: Retain -> Recall -> Judge`.
 
 ## Run the Ledger Pipeline
 
 ```bash
-export HMS_RETRIEVAL_ONLY=1
+export HMS_RETRIEVAL_ONLY=0
 export HMS_PIPELINE=ledger
 export HMS_MAX_INSTANCES=500
 export HMS_SESSION_EXPANSION_WEIGHT=0.5
@@ -231,7 +273,7 @@ bash .aaaSCRIPT/run_benchmark.sh \
 ## Run the Self-Evolution Pipeline
 
 ```bash
-export HMS_RETRIEVAL_ONLY=1
+export HMS_RETRIEVAL_ONLY=0
 export HMS_PIPELINE=self_evolution
 export HMS_MAX_INSTANCES=500
 export HMS_SESSION_EXPANSION_WEIGHT=0.5
@@ -248,7 +290,7 @@ bash .aaaSCRIPT/run_benchmark.sh \
 Useful environment variables:
 
 - `HMS_PIPELINE`: `ledger` or `self_evolution`
-- `HMS_RETRIEVAL_ONLY`: set to `1` to skip ingestion and reuse existing memories
+- `HMS_RETRIEVAL_ONLY`: defaults to `0`; set to `1` only to reuse retained memories
 - `HMS_MAX_INSTANCES`: limit the number of evaluated questions
 - `HMS_MAX_QUESTIONS`: limit questions after filtering
 - `HMS_DATASET_PATH`: provide a local LongMemEval dataset path
