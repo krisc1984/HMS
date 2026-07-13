@@ -32,6 +32,55 @@ The project focuses on the LongMemEval setting, where a question may require
 evidence from multiple sessions, timestamps, extracted memory facts, and raw
 source snippets.
 
+## One-Command Automatic Memory
+
+HMS can wrap an existing OpenAI client so each model call automatically:
+
+```text
+user input -> Recall relevant memories -> inject context -> call the LLM
+           -> Retain the completed user/assistant exchange
+```
+
+Configure the model Base URL, API key, and model in `.env`, then run:
+
+```bash
+bash scripts/run_memory_demo.sh
+```
+
+The script starts PostgreSQL and HMS locally, waits for the memory API, installs
+the local SDK adapter in an isolated `uv` environment, and runs a two-turn demo.
+The first turn stores a preference and project; the second turn recalls both
+without manually calling `retain()` or `recall()`.
+
+For this demo, one `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL` set is
+enough. The script reuses it for HMS reasoning and retain extraction when the
+role-specific values remain unset. Set the embedding model separately when your
+provider does not support `text-embedding-3-small`.
+
+The application-side integration is one wrapper call:
+
+```python
+from openai import OpenAI
+from hms_litellm import wrap_openai
+
+client = wrap_openai(
+    OpenAI(),
+    hms_api_url="http://127.0.0.1:18080",
+    api_key="YOUR_HMS_API_KEY",
+    bank_id="user-alice",
+)
+
+response = client.responses.create(
+    model="gpt-4o-mini",
+    input="What do you remember about my current project?",
+)
+```
+
+`wrap_openai()` supports both `client.responses.create(...)` and
+`client.chat.completions.create(...)`, including streaming. Use a stable,
+per-user `bank_id`; optionally set `session_id` to accumulate one conversation
+as a tracked HMS document.
+
 ## Experiment Design
 
 The reproducible evaluation follows one complete pipeline:
@@ -167,6 +216,8 @@ improve or change memory reasoning behavior after retrieval.
 Important files:
 
 - `.aaaSCRIPT/run_benchmark.sh`: unified experiment script
+- `scripts/run_memory_demo.sh`: one-command automatic retain/recall demo
+- `examples/automatic_memory/openai_responses.py`: two-turn OpenAI Responses API example
 - `docs/assets/branding/hms-banner.png`: project identity banner
 - `docs/assets/branding/hms-hero.png`: compact README project header
 - `docs/assets/branding/shadowweave-mark.png`: compact ShadowWeave team mark

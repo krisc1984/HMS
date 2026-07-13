@@ -9,6 +9,53 @@ HMS Shadow 是一个可复现的长期记忆问答实验框架。它用于测试
 项目聚焦 LongMemEval 场景。在这类问题中，答案可能需要同时利用多个
 session、多个时间点、抽取后的 memory facts，以及原始 source snippets。
 
+## 一键自动记忆
+
+HMS 可以直接包装现有 OpenAI client，让每次模型调用自动执行：
+
+```text
+用户输入 -> Recall 相关记忆 -> 注入上下文 -> 调用 LLM
+         -> Retain 完整的用户/助手对话
+```
+
+在 `.env` 中填写模型 Base URL、API Key 和 Model 后，运行：
+
+```bash
+bash scripts/run_memory_demo.sh
+```
+
+脚本会自动启动 PostgreSQL 和 HMS，等待 memory API 可用，在隔离的 `uv`
+环境中安装本地 SDK adapter，并运行两轮示例。第一轮保存用户偏好和当前项目，
+第二轮不需要手动调用 `retain()` 或 `recall()` 就能自动召回这些信息。
+
+这个 demo 只需要填写一套 `OPENAI_API_KEY` / `OPENAI_BASE_URL` /
+`OPENAI_MODEL`。当各角色的独立配置仍为空时，脚本会自动复用这套配置进行 HMS
+推理和 Retain 抽取。如果服务不支持 `text-embedding-3-small`，需要单独修改
+Embedding Model。
+
+应用侧只需要一次包装：
+
+```python
+from openai import OpenAI
+from hms_litellm import wrap_openai
+
+client = wrap_openai(
+    OpenAI(),
+    hms_api_url="http://127.0.0.1:18080",
+    api_key="YOUR_HMS_API_KEY",
+    bank_id="user-alice",
+)
+
+response = client.responses.create(
+    model="gpt-4o-mini",
+    input="你记得我当前在做什么项目吗？",
+)
+```
+
+`wrap_openai()` 同时支持 `client.responses.create(...)` 和
+`client.chat.completions.create(...)`，包括 streaming。每个用户应使用稳定且
+独立的 `bank_id`；可以额外设置 `session_id`，把一段会话累计为一个 HMS 文档。
+
 ## 实验设计
 
 完整复现实验按照以下链路执行：
@@ -134,6 +181,8 @@ answer-time controller。controller 来自错误模式诊断，主要覆盖：
 关键文件：
 
 - `.aaaSCRIPT/run_benchmark.sh`：统一实验入口脚本
+- `scripts/run_memory_demo.sh`：一键自动 retain/recall 示例
+- `examples/automatic_memory/openai_responses.py`：两轮 OpenAI Responses API 示例
 - `docs/benchmark_case_replay.html`：自动播放的单题过程回放页面
 - `docs/assets/benchmark_case_replay.svg`：README 中直接展示的动态单题回放
 - `docs/memory_pipeline_demo.html`：静态 before/after 可视化页面
