@@ -97,9 +97,72 @@ case "$BENCHMARK" in
       CMD=(uv run --directory lab/evaluation python -m benchmarks.longmemeval.longmemeval_benchmark "${LONGMEMEVAL_ARGS[@]}" "$@")
     fi
     ;;
+  locomo)
+    LOCOMO_ARGS=(
+      --results-dir "$RESULT_DIR"
+      --results-filename "$RESULTS_FILENAME"
+      "${COMMON_ARGS[@]}"
+    )
+
+    if [ -n "${HMS_MAX_CONVERSATIONS:-${HMS_MAX_INSTANCES:-}}" ]; then
+      LOCOMO_ARGS+=(--max-conversations "${HMS_MAX_CONVERSATIONS:-$HMS_MAX_INSTANCES}")
+    fi
+
+    if [ -n "${HMS_MAX_QUESTIONS:-}" ]; then
+      LOCOMO_ARGS+=(--max-questions "$HMS_MAX_QUESTIONS")
+    fi
+
+    if [ -n "${HMS_LOCOMO_CONVERSATIONS:-}" ]; then
+      read -r -a LOCOMO_CONVERSATIONS <<< "$HMS_LOCOMO_CONVERSATIONS"
+      LOCOMO_ARGS+=(--conversation "${LOCOMO_CONVERSATIONS[@]}")
+    fi
+
+    if [ -n "${HMS_MAX_CONCURRENT_QUESTIONS:-}" ]; then
+      LOCOMO_ARGS+=(--max-concurrent-questions "$HMS_MAX_CONCURRENT_QUESTIONS")
+    fi
+
+    case "${HMS_PIPELINE:-}" in
+      ledger|locomo_v26)
+        LOCOMO_ARGS+=(--oracle-planner-v26)
+        ;;
+      locomo_v27)
+        LOCOMO_ARGS+=(--oracle-planner-v27)
+        ;;
+      self_evolution)
+        echo "Unsupported HMS_PIPELINE for locomo: $HMS_PIPELINE" >&2
+        echo "Supported values for locomo: ledger, locomo_v26, locomo_v27" >&2
+        exit 2
+        ;;
+      "")
+        if [ "${HMS_ORACLE_PLANNER_V26:-0}" = "1" ] && [ "${HMS_ORACLE_PLANNER_V27:-0}" = "1" ]; then
+          echo "Cannot set both HMS_ORACLE_PLANNER_V26=1 and HMS_ORACLE_PLANNER_V27=1" >&2
+          exit 2
+        fi
+
+        if [ "${HMS_ORACLE_PLANNER_V26:-0}" = "1" ]; then
+          LOCOMO_ARGS+=(--oracle-planner-v26)
+        fi
+
+        if [ "${HMS_ORACLE_PLANNER_V27:-0}" = "1" ]; then
+          LOCOMO_ARGS+=(--oracle-planner-v27)
+        fi
+        ;;
+      *)
+        echo "Unsupported HMS_PIPELINE: $HMS_PIPELINE" >&2
+        echo "Supported values: ledger, locomo_v26, locomo_v27" >&2
+        exit 2
+        ;;
+    esac
+
+    if [ -n "$PYTHON_BIN" ]; then
+      CMD=("$PYTHON_BIN" -m benchmarks.locomo.locomo_benchmark "${LOCOMO_ARGS[@]}" "$@")
+    else
+      CMD=(uv run --directory lab/evaluation python -m benchmarks.locomo.locomo_benchmark "${LOCOMO_ARGS[@]}" "$@")
+    fi
+    ;;
   *)
     echo "Unsupported HMS_BENCHMARK: $BENCHMARK" >&2
-    echo "Supported values: longmemeval" >&2
+    echo "Supported values: longmemeval, locomo" >&2
     exit 2
     ;;
 esac
