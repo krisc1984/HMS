@@ -1,10 +1,24 @@
-# HMS Shadow
+<div align="center">
 
-[English](README.md) | [中文](README.zh-CN.md)
+# Holographic Memory System
 
-HMS Shadow is a reproducible long-term memory QA experiment framework. It is
-designed to test whether answer-time evidence organization can make a language
-model reason more reliably over retrieved memories.
+**ShadowWeave Team**
+
+*A structured memory architecture for evidence-grounded, long-horizon reasoning*
+
+<img src="docs/assets/branding/hms-banner.png" alt="Holographic Memory System" width="100%">
+
+[English](README.md) · [中文](README.zh-CN.md)
+
+</div>
+
+---
+
+## Abstract
+
+The **Holographic Memory System (HMS)** is a reproducible long-term memory QA
+framework for studying whether structured answer-time evidence organization can
+improve a language model's reasoning over retrieved memories.
 
 The project focuses on the LongMemEval setting, where a question may require
 evidence from multiple sessions, timestamps, extracted memory facts, and raw
@@ -118,6 +132,8 @@ improve or change memory reasoning behavior after retrieval.
 ├── deploy/
 ├── docs/
 │   ├── assets/
+│   │   ├── branding/
+│   │   │   └── hms-banner.png
 │   │   ├── benchmark_case_replay.svg
 │   │   └── memory_pipeline_demo.svg
 │   ├── benchmark_case_replay.html
@@ -139,6 +155,7 @@ improve or change memory reasoning behavior after retrieval.
 Important files:
 
 - `.aaaSCRIPT/run_benchmark.sh`: unified experiment script
+- `docs/assets/branding/hms-banner.png`: project identity banner
 - `docs/benchmark_case_replay.html`: auto-playing single-case process replay
 - `docs/assets/benchmark_case_replay.svg`: README-embedded animated case replay
 - `docs/memory_pipeline_demo.html`: static before/after visualization
