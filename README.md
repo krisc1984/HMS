@@ -1,23 +1,28 @@
+<div align="center">
+
 <table>
   <tr>
-    <td width="36%" align="center" valign="middle">
-      <img src="docs/assets/branding/shadowweave_v6.png" alt="ShadowWeave" width="330">
+    <td valign="middle">
+      <h1>Holographic Memory System</h1>
     </td>
-    <td width="64%" valign="middle">
-      <h1>Holographic<br>Memory System</h1>
-      <p><strong>HMS</strong> · Structured Memory Intelligence</p>
-      <p><em>Evidence-grounded memory for reliable long-horizon reasoning</em></p>
-      <p><strong>ShadowWeave Team</strong></p>
-      <p>
-        <a href="https://arxiv.org/">
-          <img src="https://img.shields.io/badge/arXiv-coming_soon-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv: coming soon">
-        </a>
-        <img src="https://img.shields.io/badge/status-active-145DA0?style=flat-square" alt="Project status: active">
-      </p>
-      <p><a href="README.md">English</a> · <a href="README.zh-CN.md">中文</a></p>
+    <td width="112" align="center" valign="middle">
+      <img src="docs/assets/branding/shadowweave_v6.png" alt="ShadowWeave" width="96">
     </td>
   </tr>
 </table>
+
+**HMS · Structured Memory Intelligence**
+
+*Evidence-grounded memory for reliable long-horizon reasoning*
+
+**ShadowWeave Team**
+
+<a href="https://arxiv.org/"><img src="https://img.shields.io/badge/arXiv-coming_soon-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv: coming soon"></a>
+<img src="https://img.shields.io/badge/status-active-145DA0?style=flat-square" alt="Project status: active">
+
+[English](README.md) · [中文](README.zh-CN.md)
+
+</div>
 
 <p align="center">
   <img src="docs/assets/branding/hms-banner.png" alt="Holographic Memory System architecture banner" width="100%">
