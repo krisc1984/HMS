@@ -1,21 +1,17 @@
 <div align="center">
 
+<img src="docs/assets/branding/hms-hero.png" alt="Holographic Memory System" width="94%">
+
+### Structured Memory Intelligence for Reliable Long-Horizon Reasoning
+
 <table>
   <tr>
-    <td valign="middle">
-      <h1>Holographic Memory System</h1>
-    </td>
-    <td width="112" align="center" valign="middle">
-      <img src="docs/assets/branding/shadowweave_v6.png" alt="ShadowWeave" width="96">
+    <td valign="middle"><strong>ShadowWeave Team</strong></td>
+    <td width="74" align="center" valign="middle">
+      <img src="docs/assets/branding/shadowweave-mark.png" alt="ShadowWeave" width="62">
     </td>
   </tr>
 </table>
-
-**HMS · Structured Memory Intelligence**
-
-*Evidence-grounded memory for reliable long-horizon reasoning*
-
-**ShadowWeave Team**
 
 <a href="https://arxiv.org/"><img src="https://img.shields.io/badge/arXiv-coming_soon-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv: coming soon"></a>
 <img src="https://img.shields.io/badge/status-active-145DA0?style=flat-square" alt="Project status: active">
@@ -23,10 +19,6 @@
 [English](README.md) · [中文](README.zh-CN.md)
 
 </div>
-
-<p align="center">
-  <img src="docs/assets/branding/hms-banner.png" alt="Holographic Memory System architecture banner" width="100%">
-</p>
 
 ---
 
@@ -150,6 +142,8 @@ improve or change memory reasoning behavior after retrieval.
 │   ├── assets/
 │   │   ├── branding/
 │   │   │   ├── hms-banner.png
+│   │   │   ├── hms-hero.png
+│   │   │   ├── shadowweave-mark.png
 │   │   │   └── shadowweave_v6.png
 │   │   ├── benchmark_case_replay.svg
 │   │   └── memory_pipeline_demo.svg
@@ -173,6 +167,8 @@ Important files:
 
 - `.aaaSCRIPT/run_benchmark.sh`: unified experiment script
 - `docs/assets/branding/hms-banner.png`: project identity banner
+- `docs/assets/branding/hms-hero.png`: compact README project header
+- `docs/assets/branding/shadowweave-mark.png`: compact ShadowWeave team mark
 - `docs/assets/branding/shadowweave_v6.png`: ShadowWeave team identity artwork
 - `docs/benchmark_case_replay.html`: auto-playing single-case process replay
 - `docs/assets/benchmark_case_replay.svg`: README-embedded animated case replay
